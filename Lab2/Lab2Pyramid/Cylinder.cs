@@ -33,6 +33,7 @@ namespace Lab2Pyramid
             this.x = x;
             this.y = y;
             this.z = z;
+            this.buildVerticesSmooth();
         }
 
         public List<float> getUnitCircleVertices()

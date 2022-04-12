@@ -24,6 +24,10 @@ namespace Lab2Pyramid
             this.Z = Z;
             this.sectorCount = sectorCount;
             this.stackCount = stackCount;
+            
+            //////////////////
+            this.GetVertecies();
+            this.GetIndices();
         }
 
         public float[] GetNormals()
@@ -146,5 +150,16 @@ namespace Lab2Pyramid
 
 
         }
+
+        public void SetCoords(float coordX, float coordY, float coordZ )
+        {
+            this.X = coordX;
+            this.Y = coordY;
+            this.Z = coordZ;
+
+            GetVertecies();
+        }
+
+
     }
 }

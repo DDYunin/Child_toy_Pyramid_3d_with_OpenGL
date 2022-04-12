@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Lab2Pyramid
 {
-	class Torus
+    class Torus
 	{
 
 		public List<float> Vertecies = new List<float>();
@@ -17,7 +17,8 @@ namespace Lab2Pyramid
 
 		int mainSegments; int tubeSegments; float mainRadius; float tubeRadius;
 		bool withPositions = true; bool withTextureCoordinates = true; bool withNormals = true;
-		public Torus(int mainSegments, int tubeSegments, float mainRadius, float tubeRadius,
+		float coord_X, coord_Y, coord_Z;
+		public Torus(int mainSegments, int tubeSegments, float mainRadius, float tubeRadius, float coord_X = 0.0f, float coord_Y = 0.0f, float coord_Z = 0.0f,
 		bool withPositions = true, bool withTextureCoordinates = true, bool withNormals = true)
 		{
 			this.mainSegments = mainSegments;
@@ -27,6 +28,13 @@ namespace Lab2Pyramid
 			this.withPositions = withPositions;
 			this.withTextureCoordinates = withTextureCoordinates;
 			this.withNormals = withNormals;
+			this.coord_X = coord_X;
+			this.coord_Y = coord_Y;
+			this.coord_Z = coord_Z;
+
+			this.GetVertices();
+			this.GetNormals();
+			this.GetTexCoords();
 		}
 
 		public float[] GetVertices()
@@ -50,9 +58,9 @@ namespace Lab2Pyramid
 					float cosTubeSegment = (float)Math.Cos(currentTubeSegmentAngle);
 
 					// Calculate vertex position on the surface of torus
-					Vertecies.Add((mainRadius + tubeRadius * cosTubeSegment) * cosMainSegment); // x
-					Vertecies.Add((mainRadius + tubeRadius * cosTubeSegment) * sinMainSegment); // y
-					Vertecies.Add(tubeRadius * sinTubeSegment);//z
+					Vertecies.Add(coord_X + (mainRadius + tubeRadius * cosTubeSegment) * cosMainSegment); // x //coord_x + лишнее
+					Vertecies.Add(coord_Y + (mainRadius + tubeRadius * cosTubeSegment) * sinMainSegment); // y
+					Vertecies.Add(coord_Z + tubeRadius * sinTubeSegment);//z
 															   //auto surfacePosition = glm::vec3(
 															   //	(_mainRadius + _tubeRadius * cosTubeSegment) * cosMainSegment,
 															   //	(_mainRadius + _tubeRadius * cosTubeSegment) * sinMainSegment,
@@ -93,9 +101,9 @@ namespace Lab2Pyramid
 					float sinTubeSegment = (float)Math.Sin(currentTubeSegmentAngle);
 					float cosTubeSegment = (float)Math.Cos(currentTubeSegmentAngle);
 
-					Normals.Add(cosMainSegment * cosTubeSegment); //x 
-					Normals.Add(sinMainSegment * cosTubeSegment); //y
-					Normals.Add(sinTubeSegment); //z
+					Normals.Add(coord_X + cosMainSegment * cosTubeSegment); //x 
+					Normals.Add(coord_Y + sinMainSegment * cosTubeSegment); //y
+					Normals.Add(coord_Z + sinTubeSegment); //z
 
 					// Update current tube angle
 					currentTubeSegmentAngle += tubeSegmentAngleStep;
@@ -108,7 +116,7 @@ namespace Lab2Pyramid
 		}
 
 		public float[] GetTexCoords()
-        {
+		{
 			float mainSegmentTextureStep = 2.0f / (float)(mainSegments);
 			float tubeSegmentTextureStep = 1.0f / (float)(tubeSegments);
 
@@ -130,10 +138,10 @@ namespace Lab2Pyramid
 			}
 
 			return TexCoords.ToArray();
-        }
+		}
 
 		public int[] GetIndices()
-        {
+		{
 			int currentVertexOffset = 0;
 			for (int i = 0; i < mainSegments; i++)
 			{
@@ -163,11 +171,11 @@ namespace Lab2Pyramid
 				result.Add(Vertecies[i * 3 + 1]);
 				result.Add(Vertecies[i * 3 + 2]);
 
-                result.Add(Normals[i * 3]);
-                result.Add(Normals[i * 3 + 1]);
-                result.Add(Normals[i * 3 + 2]);
+				result.Add(Normals[i * 3]);
+				result.Add(Normals[i * 3 + 1]);
+				result.Add(Normals[i * 3 + 2]);
 
-                result.Add(TexCoords[i * 2]);
+				result.Add(TexCoords[i * 2]);
 				result.Add(TexCoords[i * 2 + 1]);
 			}
 

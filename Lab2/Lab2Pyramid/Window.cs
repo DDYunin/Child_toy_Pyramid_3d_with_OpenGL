@@ -3,6 +3,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics.OpenGL4;
 using Lab2Pyramid;
+using System.Threading;
 using OpenTK.Mathematics;
 using System;
 using LearnOpenTK.Common; //в этом пространстве хранится Texture.cs
@@ -13,15 +14,16 @@ namespace Lab2Pyramid
 {
     public class Window : GameWindow
     {
-        float[] _vertices, _vertices1;
-        int[] _indices, _indices1;
+        //float[] _vertices, _vertices1;
+        //int[] _indices, _indices1;
 
         private Shader _shader;
 
-        private Texture _texture;
-
-
-        private Texture _texture2;
+        private Texture _texture_tree;
+        private Texture _texture_red;
+        private Texture _texture_green;
+        private Texture _texture_yellow;
+        private Texture _texture_blue;
 
         private Camera _camera;
 
@@ -29,10 +31,26 @@ namespace Lab2Pyramid
 
         private Vector2 _lastPos;
 
-        private List<RenderSphere> _renderObjects = new List<RenderSphere>();
+        private List<RenderObjects> _renderObjects = new List<RenderObjects>();
 
-        private double _time;
+        private double _timeLimit = 100;
+        private double _time = 0;
         private int coef = 1;
+        bool allDraw = false;
+
+        int NumberMoveObject = 1;// от 1 до 8
+        const int NumberOfFigure = 9;
+        int NumberOfMoveObjects = 1;
+
+        Sphere Butt;
+        Cylinder Cyl;
+        Torus t1;
+        Torus t2;
+        Torus t3;
+        Torus t4;
+        Torus t5;
+        Torus t6;
+        Torus t7;
 
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
@@ -42,45 +60,65 @@ namespace Lab2Pyramid
         protected override void OnLoad()
         {
             base.OnLoad();
-            _camera = new Camera(Vector3.UnitZ * 6, Size.X / (float)Size.Y);
+            _camera = new Camera(Vector3.UnitZ * 15, Size.X / (float)Size.Y);
 
-            Sphere Butt = new Sphere(0.6f, 2f, 2f, 2f);
-            Cylinder Cyl = new Cylinder(0f, 0f, 0f, 0.2f, 4f, 30, 90);
-            Cyl.buildVerticesSmooth(); //  запихнуть эту функций куд-нибдуь внутрь класса
+            Butt = new Sphere(1.3f, 0.0f, 0.0f, -6.5f);
+            Cyl = new Cylinder(0f, 0f, 0f, 0.45f, 13f);
+            t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, 0.0f, 5.5f);
+            t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, 0.0f, 3.3f);
+            t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, 0.0f, 1.3f);
+            t4 = new Torus(75, 75, 2.2f, 0.85f, 0.0f, 0.0f, -0.5f);
+            t5 = new Torus(75, 75, 1.8f, 0.75f, 0.0f, 0.0f, -2.1f);
+            t6 = new Torus(75, 75, 1.4f, 0.65f, 0.0f, 0.0f, -3.5f);
+            t7 = new Torus(75, 75, 1.0f, 0.55f, 0.0f, 0.0f, -4.75f);
+            //Cyl.buildVerticesSmooth(); //  запихнуть эту функций куд-нибдуь внутрь класса
 
-            Torus t = new Torus(100, 100, 1f, 0.5f);
-            t.GetVertices();
-            t.GetNormals();
-            t.GetTexCoords();
+
+            //t.GetVertices();
+            //t.GetNormals();
+            //t.GetTexCoords();
 
 
             //_vertices = Head.GetVertecies();
             //_indices = Head.GetIndices();
 
-            _vertices1 = Butt.GetVertecies();
-            _indices1 = Butt.GetIndices();
+            //_vertices1 = Butt.GetVertecies();
+            //_indices1 = Butt.GetIndices();
 
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
             GL.Enable(EnableCap.DepthTest);
 
-            _texture = Texture.LoadFromFile("../../../Resources/awesomeface.png");
-            _texture2 = Texture.LoadFromFile("../../../Resources/awesomeface.png");
+            _texture_tree = Texture.LoadFromFile("../../../Resources/tree.jpg");
+            _texture_red = Texture.LoadFromFile("../../../Resources/new_red.jpg");
+            _texture_blue = Texture.LoadFromFile("../../../Resources/blue.jpg");
+            _texture_green = Texture.LoadFromFile("../../../Resources/new_green.jpg");
+            _texture_yellow = Texture.LoadFromFile("../../../Resources/new_yellow.jpeg");
             _shader = new Shader("../../../Shaders/shader.vert", "../../../Shaders/shader.frag");
 
 
 
-            _renderObjects.Add(new RenderSphere(Cyl.GetAllTogether(), Cyl.GetIndices(), _texture, _shader, 8));
-            _renderObjects.Add(new RenderSphere(t.GetAllTogether(),t.GetIndices(), _texture, _shader, 8));
-            _renderObjects.Add(new RenderSphere(Butt.GetAllTogether(), Butt.GetIndices(), _texture2, _shader, 8));
+            _renderObjects.Add(new RenderObjects(Cyl.GetAllTogether(), Cyl.GetIndices(), _texture_tree, _shader, 8));
+            _renderObjects.Add(new RenderObjects(Butt.GetAllTogether(), Butt.GetIndices(), _texture_blue, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t7.GetAllTogether(), t7.GetIndices(), _texture_green, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t6.GetAllTogether(), t6.GetIndices(), _texture_red, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t5.GetAllTogether(), t5.GetIndices(), _texture_yellow, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t4.GetAllTogether(), t4.GetIndices(), _texture_blue, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t3.GetAllTogether(), t3.GetIndices(), _texture_green, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t2.GetAllTogether(), t2.GetIndices(), _texture_red, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t1.GetAllTogether(), t1.GetIndices(), _texture_yellow, _shader, 8));
+            
+           
+            
+            
 
             _shader.Use();
 
 
 
-            _texture.Use(TextureUnit.Texture0);
+           // _texture_tree.Use(TextureUnit.Texture0); - без понятия для чего это
 
-            _texture2.Use(TextureUnit.Texture1);
+            //_texture_yellow.Use(TextureUnit.Texture1); - без понятия для чего это
 
 
 
@@ -96,57 +134,217 @@ namespace Lab2Pyramid
         {
             base.OnRenderFrame(e);
 
-            _time += 500.0 * e.Time * coef * Math.Cos(_time / 40);
-
+           
+            
+            
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             //if (_time > 60) coef = -1;
             //if (_time < -60) coef = 1;
 
-            int i = 0;
-
-            //var Object = _renderObjects[0];
-            foreach (var Object in _renderObjects)
+            //Должно подниматься по одной фигуре
+            //Thread.Sleep();
+            DrawCylinder();
+            if (NumberMoveObject == 1)
+                MotionSphere();
+            else
+                DrawSphere();
+            for (int i = NumberOfMoveObjects + 1; i < NumberOfFigure; i++)
             {
-                Object.Bind();
-
-                //var RotationMatrixX = Matrix4.CreateTranslation(-(float)(_time / 40), 0, 0);
-
-                //var RotationMatrixY = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
-
-                var model = Matrix4.Identity /* RotationMatrixY*/;// * RotationMatrixZ * RotationMatrixX;
-
-                Object.ApplyTexture();
-                //var Object1 = _renderObjects[1];
-                // Object1.Bind();
-
-                //var RotationMatrixX = Matrix4.CreateTranslation(-(float)(_time / 40), 0, 0);
-
-                //var RotationMatrixY = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
-
-                //var model = Matrix4.Identity /* RotationMatrixY*/;// * RotationMatrixZ * RotationMatrixX;
-
-            //Object1.ApplyTexture();
-
-
-
-                _shader.SetMatrix4("model", model);
-                _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-
-                Object.Render();
-                //Object1.Render();
-
+                if (i == NumberMoveObject)
+                {
+                    MotionTorus(i);
+                    continue;
+                }
+                DrawTorus(i);
             }
-        
-
-       
-            
-            // GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
-
+            for (int i = 2; i <= NumberOfMoveObjects; i++)
+            {
+                DrawTorusInUp(i);
+            }
+            //Какой-то косяк с индексами, выяснить какой
             SwapBuffers();
+            _time += 100.0 * e.Time * coef;// * Math.Cos(_time / 40);
         }
 
+        public void MotionSphere()
+        {
+            var Object = _renderObjects[1];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)(_time / 4), 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+            if (_time > _timeLimit)
+            {
+                _time = 0;
+                NumberMoveObject++;
+            }
+        }
+
+        public void MotionTorus(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)(_time / 4 - 0.3f), 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.RenderTorus();
+            if (_time > _timeLimit)
+            {
+                _time = 0;
+                NumberMoveObject++;
+                NumberOfMoveObjects++;
+            }
+            
+
+        }
+
+        public void DrawCylinder()
+        {
+            var Object = _renderObjects[0];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+        }
+
+        public void DrawSphere()
+        {
+            var Object = _renderObjects[1];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)_timeLimit / 4, 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+        }
+
+        public void DrawTorus(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.RenderTorus();
+        }
+
+        public void DrawTorusInUp(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)((_timeLimit / 4) - (i-1) * 0.45f), 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.RenderTorus();
+        }
+
+        public void DisassemblePyramidEazyMode(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)(_time / 4), 0);
+            var model = Matrix4.Identity;
+            switch (i)
+            {
+                case 0:
+                    Object.Bind();
+                    model *= RotationMatrixX1;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.Render();
+                    break;
+                case 1:
+                    Object.Bind();
+                    model *= RotationMatrixX1 * RotationMatrixX2;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.Render();
+                    break;
+                default:
+                    Object.Bind();
+                    model *= RotationMatrixX1 * RotationMatrixX2;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.RenderTorus();
+                    break;
+            }
+        }
+
+        public void AssemblePyramidEazyMode(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, -(float)(_time / 4), 0);
+            var model = Matrix4.Identity;
+            switch (i)
+            {
+                case 0:
+                    Object.Bind();
+                    model *= RotationMatrixX1;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.Render();
+                    break;
+                case 1:
+                    Object.Bind();
+                    model *= RotationMatrixX1 * RotationMatrixX2;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.Render();
+                    break;
+                default:
+                    Object.Bind();
+                    model *= RotationMatrixX1 * RotationMatrixX2;
+                    Object.ApplyTexture();
+                    _shader.SetMatrix4("model", model);
+                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+                    Object.RenderTorus();
+                    break;
+            }
+        }
+
+        
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
@@ -163,7 +361,7 @@ namespace Lab2Pyramid
                 Close();
             }
 
-            const float cameraSpeed = 1.5f;
+            const float cameraSpeed = 3.5f;
             const float sensitivity = 0.2f;
 
             if (input.IsKeyDown(Keys.W))
