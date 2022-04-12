@@ -36,7 +36,7 @@ namespace Lab2Pyramid
         private double _timeLimit = 100;
         private double _time = 0;
         private int coef = 1;
-        bool allDraw = false;
+        bool isDisassemble = false;
 
         int NumberMoveObject = 1;// от 1 до 8
         const int NumberOfFigure = 9;
@@ -44,6 +44,7 @@ namespace Lab2Pyramid
 
         Sphere Butt;
         Cylinder Cyl;
+        Cylinder Cyl1;
         Torus t1;
         Torus t2;
         Torus t3;
@@ -62,8 +63,9 @@ namespace Lab2Pyramid
             base.OnLoad();
             _camera = new Camera(Vector3.UnitZ * 15, Size.X / (float)Size.Y);
 
+            Cyl1 = new Cylinder(0f, 0f, 7.3f, 6f, 1f);
             Butt = new Sphere(1.3f, 0.0f, 0.0f, -6.5f);
-            Cyl = new Cylinder(0f, 0f, 0f, 0.45f, 13f);
+            Cyl = new Cylinder(0f, 0f, 0f, 0.45f, 13.8f);
             t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, 0.0f, 5.5f);
             t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, 0.0f, 3.3f);
             t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, 0.0f, 1.3f);
@@ -107,10 +109,11 @@ namespace Lab2Pyramid
             _renderObjects.Add(new RenderObjects(t3.GetAllTogether(), t3.GetIndices(), _texture_green, _shader, 8));
             _renderObjects.Add(new RenderObjects(t2.GetAllTogether(), t2.GetIndices(), _texture_red, _shader, 8));
             _renderObjects.Add(new RenderObjects(t1.GetAllTogether(), t1.GetIndices(), _texture_yellow, _shader, 8));
-            
-           
-            
-            
+            _renderObjects.Add(new RenderObjects(Cyl1.GetAllTogether(), Cyl1.GetIndices(), _texture_tree, _shader, 8));
+
+
+
+
 
             _shader.Use();
 
@@ -134,7 +137,7 @@ namespace Lab2Pyramid
         {
             base.OnRenderFrame(e);
 
-           
+            
             
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -142,26 +145,34 @@ namespace Lab2Pyramid
             //if (_time > 60) coef = -1;
             //if (_time < -60) coef = 1;
 
+            if (!isDisassemble)
+                DisassemblePyramid();
+            else
+            {
+                DrawCylinder1();
+                DrawCylinder();
+                for (int i = NumberOfMoveObjects; i >= 2; i--)
+                {
+                    if (i == NumberMoveObject)
+                    {
+                        MotionTorusDown(i);
+                        continue;
+                    }
+                    DrawTorusInUp(i);
+                }
+               for (int i = NumberOfFigure - 1; i > NumberOfMoveObjects; i--)
+                    DrawTorus(i);
+                if (NumberMoveObject == 1)
+                    MotionSphereDown();
+                else if (NumberMoveObject == 0)
+                    DrawSphereInStartPosition();
+                else
+                    DrawSphere();
+            }
+
             //Должно подниматься по одной фигуре
             //Thread.Sleep();
-            DrawCylinder();
-            if (NumberMoveObject == 1)
-                MotionSphere();
-            else
-                DrawSphere();
-            for (int i = NumberOfMoveObjects + 1; i < NumberOfFigure; i++)
-            {
-                if (i == NumberMoveObject)
-                {
-                    MotionTorus(i);
-                    continue;
-                }
-                DrawTorus(i);
-            }
-            for (int i = 2; i <= NumberOfMoveObjects; i++)
-            {
-                DrawTorusInUp(i);
-            }
+            
             //Какой-то косяк с индексами, выяснить какой
             SwapBuffers();
             _time += 100.0 * e.Time * coef;// * Math.Cos(_time / 40);
@@ -206,8 +217,54 @@ namespace Lab2Pyramid
                 NumberMoveObject++;
                 NumberOfMoveObjects++;
             }
+            if (NumberOfMoveObjects == 8)
+            {
+                NumberMoveObject--;
+                NumberOfMoveObjects = 8;
+            }
             
 
+        }
+
+        public void MotionSphereDown()
+        {
+            var Object = _renderObjects[1];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)((_timeLimit / 4) - (float)(_time / 4)), 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+            if (_time > _timeLimit)
+            {
+                _time = 0;
+                NumberMoveObject--;
+            }
+        }
+
+        public void MotionTorusDown(int i)
+        {
+            var Object = _renderObjects[i];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)((_timeLimit / 4) - (float)(_time / 4 - 0.3f)), 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.RenderTorus();
+            if (_time > _timeLimit)
+            {
+                _time = 0;
+                NumberMoveObject--;
+                NumberOfMoveObjects--;
+            }
         }
 
         public void DrawCylinder()
@@ -222,6 +279,41 @@ namespace Lab2Pyramid
             _shader.SetMatrix4("view", _camera.GetViewMatrix());
             _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
             Object.Render();
+        }
+
+        public void DrawCylinder1()
+        {
+            var Object = _renderObjects[9];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+        }
+
+        public void DrawSphereInStartPosition()
+        {
+            var Object = _renderObjects[1];
+            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
+            var RotationMatrixX2 = Matrix4.CreateTranslation(0, 0, 0);
+            var model = Matrix4.Identity;
+            Object.Bind();
+            model *= RotationMatrixX1 * RotationMatrixX2;
+            Object.ApplyTexture();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Object.Render();
+            if (_time > _timeLimit * 2)
+            {
+                _time = 0;
+                NumberMoveObject++;
+                isDisassemble = false;
+            }
         }
 
         public void DrawSphere()
@@ -266,8 +358,33 @@ namespace Lab2Pyramid
             _shader.SetMatrix4("view", _camera.GetViewMatrix());
             _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
             Object.RenderTorus();
+            if (_time > _timeLimit * 2 && i == 8)
+            {
+                _time = 0;
+                isDisassemble = true;
+            }
         }
 
+        public void DisassemblePyramid()
+        {
+            DrawCylinder1();
+            DrawCylinder();
+            if (NumberMoveObject == 1)
+                MotionSphere();
+            else
+                DrawSphere();
+            for (int i = NumberOfMoveObjects + 1; i < NumberOfFigure; i++)
+            {
+                if (i == NumberMoveObject)
+                {
+                    MotionTorus(i);
+                    continue;
+                }
+                DrawTorus(i);
+            }
+            for (int i = 2; i <= NumberOfMoveObjects; i++)
+                DrawTorusInUp(i);
+        }
         public void DisassemblePyramidEazyMode(int i)
         {
             var Object = _renderObjects[i];
