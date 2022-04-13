@@ -17,17 +17,20 @@ namespace Lab2Pyramid
 
         public readonly int indicesLenght;
 
-        Texture texture;
+        Texture Diffuse, Specular;
         Shader shader;
 
 
-        public RenderObjects(float[] _vertices, int[] _indices, Texture texture, Shader shader, int stride)
+        public RenderObjects(float[] _vertices, int[] _indices, Texture diffuse, Texture specular, Shader shader, int stride)
         {
-            this.texture = texture;
+            this.Diffuse = diffuse;
             this.shader = shader;
+            this.Specular = specular;
             indicesLenght = _indices.Length;
 
-            shader.SetInt("texture0", 0);
+            //shader.SetInt("texture0", 0);
+
+            //shader.SetInt("texture1", 0);
             GL.BindVertexArray(_vertexArrayObject);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
@@ -45,9 +48,13 @@ namespace Lab2Pyramid
             GL.EnableVertexAttribArray(positionLocation);
             GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
 
-            var normalLocation = shader.GetAttribLocation("aTexCoord");
+            var normalLocation = shader.GetAttribLocation("aNormal");
             GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
+            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 3 * sizeof(float));
+
+            var texCoordLocation = shader.GetAttribLocation("aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
 
             // link the vertex array and buffer and provide the stride as size of Vertex
             GL.VertexArrayVertexBuffer(_vertexArrayObject, 0, _vertexBufferObject, IntPtr.Zero, stride * sizeof(float));
@@ -55,30 +62,11 @@ namespace Lab2Pyramid
 
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.DynamicDraw);//staticDraw
 
 
         }
 
-        //public RenderSphere(float[] vertex,  Texture texture, Shader shader)
-        //{
-        //    this.texture = texture;
-        //    this.shader = shader;
-        //    indicesLenght = vertex.Length;
-        //    _vertexBufferObject = GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-
-        //    GL.BufferData(BufferTarget.ArrayBuffer, vertex.Length * sizeof(float), vertex,  BufferUsageHint.StaticDraw);
-        //    _vertexArrayObject = GL.GenVertexArray();
-        //    GL.BindVertexArray(_vertexArrayObject);
-
-        //    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        //    GL.EnableVertexAttribArray(0);
-        //}
-        //public void RenderWithoutIndices()
-        //{
-        //    GL.DrawArrays(PrimitiveType.Triangles, 0, indicesLenght);
-        //}
         public void RenderTorus()
         {
             GL.DrawElements(PrimitiveType.TriangleStrip, indicesLenght, DrawElementsType.UnsignedInt, 0);//PrimitiveType.Triangles
@@ -90,7 +78,8 @@ namespace Lab2Pyramid
         }
         public void ApplyTexture()
         {
-            texture.Use(TextureUnit.Texture0);
+            Diffuse.Use(TextureUnit.Texture0);
+            Specular.Use(TextureUnit.Texture1);
             shader.Use();
         }
         public void Bind()

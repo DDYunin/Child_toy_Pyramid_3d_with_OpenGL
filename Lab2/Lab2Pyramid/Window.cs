@@ -25,11 +25,20 @@ namespace Lab2Pyramid
         private Texture _texture_yellow;
         private Texture _texture_blue;
 
+        // update with lighting
+        private Texture _texture_specular_tree;
+        private Texture _texture_specular_red;
+        private Texture _texture_specular_green;
+        private Texture _texture_specular_yellow;
+        private Texture _texture_specular_blue;
+        // update with lighting
+
         private Camera _camera;
 
         private bool _firstMove = true;
 
         private Vector2 _lastPos;
+
 
         private List<RenderObjects> _renderObjects = new List<RenderObjects>();
 
@@ -41,6 +50,10 @@ namespace Lab2Pyramid
         int NumberMoveObject = 1;// от 1 до 8
         const int NumberOfFigure = 9;
         int NumberOfMoveObjects = 1;
+        
+        // update with lighting
+        private readonly Vector3 _lightPos = new Vector3(0.0f, 0.0f, 0.0f);
+        // update with lighting
 
         Sphere Butt;
         Cylinder Cyl;
@@ -61,18 +74,18 @@ namespace Lab2Pyramid
         protected override void OnLoad()
         {
             base.OnLoad();
-            _camera = new Camera(Vector3.UnitZ * 15, Size.X / (float)Size.Y);
+            _camera = new Camera(Vector3.UnitZ * 1, Size.X / (float)Size.Y);
 
-            Cyl1 = new Cylinder(0f, 0f, 7.3f, 6f, 1f);
-            Butt = new Sphere(1.3f, 0.0f, 0.0f, -6.5f);
-            Cyl = new Cylinder(0f, 0f, 0f, 0.45f, 13.8f);
-            t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, 0.0f, 5.5f);
-            t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, 0.0f, 3.3f);
-            t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, 0.0f, 1.3f);
-            t4 = new Torus(75, 75, 2.2f, 0.85f, 0.0f, 0.0f, -0.5f);
-            t5 = new Torus(75, 75, 1.8f, 0.75f, 0.0f, 0.0f, -2.1f);
-            t6 = new Torus(75, 75, 1.4f, 0.65f, 0.0f, 0.0f, -3.5f);
-            t7 = new Torus(75, 75, 1.0f, 0.55f, 0.0f, 0.0f, -4.75f);
+            Cyl1 = new Cylinder(0f, -19.0f, 7.3f, 6f, 1f);//0, -19, 7.3
+            Butt = new Sphere(1.3f, 0.0f, -19.0f, -6.5f);
+            Cyl = new Cylinder(0f, -19.0f, 0f, 0.45f, 13.8f);
+            t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, -19.0f, 5.5f);
+            t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, -19.0f, 3.3f);
+            t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, -19.0f, 1.3f);
+            t4 = new Torus(75, 75, 2.2f, 0.85f, 0.0f, -19.0f, -0.5f);
+            t5 = new Torus(75, 75, 1.8f, 0.75f, 0.0f, -19.0f, -2.1f);
+            t6 = new Torus(75, 75, 1.4f, 0.65f, 0.0f, -19.0f, -3.5f);
+            t7 = new Torus(75, 75, 1.0f, 0.55f, 0.0f, -19.0f, -4.75f);
             //Cyl.buildVerticesSmooth(); //  запихнуть эту функций куд-нибдуь внутрь класса
 
 
@@ -96,20 +109,27 @@ namespace Lab2Pyramid
             _texture_blue = Texture.LoadFromFile("../../../Resources/blue.jpg");
             _texture_green = Texture.LoadFromFile("../../../Resources/new_green.jpg");
             _texture_yellow = Texture.LoadFromFile("../../../Resources/new_yellow.jpeg");
-            _shader = new Shader("../../../Shaders/shader.vert", "../../../Shaders/shader.frag");
+
+            _texture_specular_tree = Texture.LoadFromFile("../../../Resources/tree_specular.jpg");
+            _texture_specular_red = Texture.LoadFromFile("../../../Resources/new_red_specular.jpg");
+            _texture_specular_blue = Texture.LoadFromFile("../../../Resources/blue_specular.jpg");
+            _texture_specular_green = Texture.LoadFromFile("../../../Resources/new_green_specular.jpg");
+            _texture_specular_yellow = Texture.LoadFromFile("../../../Resources/new_yellow_specular.jpg");
+            //_shader = new Shader("../../../Shaders/shader.vert", "../../../Shaders/shader.frag");
+            _shader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
+            DefineShader(_shader);
 
 
-
-            _renderObjects.Add(new RenderObjects(Cyl.GetAllTogether(), Cyl.GetIndices(), _texture_tree, _shader, 8));
-            _renderObjects.Add(new RenderObjects(Butt.GetAllTogether(), Butt.GetIndices(), _texture_blue, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t7.GetAllTogether(), t7.GetIndices(), _texture_green, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t6.GetAllTogether(), t6.GetIndices(), _texture_red, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t5.GetAllTogether(), t5.GetIndices(), _texture_yellow, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t4.GetAllTogether(), t4.GetIndices(), _texture_blue, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t3.GetAllTogether(), t3.GetIndices(), _texture_green, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t2.GetAllTogether(), t2.GetIndices(), _texture_red, _shader, 8));
-            _renderObjects.Add(new RenderObjects(t1.GetAllTogether(), t1.GetIndices(), _texture_yellow, _shader, 8));
-            _renderObjects.Add(new RenderObjects(Cyl1.GetAllTogether(), Cyl1.GetIndices(), _texture_tree, _shader, 8));
+            _renderObjects.Add(new RenderObjects(Cyl.GetAllTogether(), Cyl.GetIndices(), _texture_tree, _texture_specular_tree, _shader, 8));
+            _renderObjects.Add(new RenderObjects(Butt.GetAllTogether(), Butt.GetIndices(), _texture_blue, _texture_specular_blue, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t7.GetAllTogether(), t7.GetIndices(), _texture_green, _texture_specular_green, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t6.GetAllTogether(), t6.GetIndices(), _texture_red, _texture_specular_red, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t5.GetAllTogether(), t5.GetIndices(), _texture_yellow, _texture_specular_yellow, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t4.GetAllTogether(), t4.GetIndices(), _texture_blue, _texture_specular_blue, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t3.GetAllTogether(), t3.GetIndices(), _texture_green, _texture_specular_green, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t2.GetAllTogether(), t2.GetIndices(), _texture_red, _texture_specular_red, _shader, 8));
+            _renderObjects.Add(new RenderObjects(t1.GetAllTogether(), t1.GetIndices(), _texture_yellow, _texture_specular_yellow, _shader, 8));
+            _renderObjects.Add(new RenderObjects(Cyl1.GetAllTogether(), Cyl1.GetIndices(), _texture_tree, _texture_specular_tree, _shader, 8));
 
 
 
@@ -130,7 +150,31 @@ namespace Lab2Pyramid
             // We also give it the proper aspect ratio.
 
             // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
-            CursorGrabbed = true;
+            //CursorGrabbed = true; -раскомменть
+        }
+
+        private void DefineShader(Shader _lightingShader)
+        {
+            _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
+            _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+
+            _lightingShader.SetVector3("viewPos", _lightPos);//_camera.Position
+
+            _lightingShader.SetInt("material.diffuse", 0);
+            _lightingShader.SetInt("material.specular", 1);
+            _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
+            _lightingShader.SetFloat("material.shininess", 1000.0f);
+
+            _lightingShader.SetVector3("light.position", _camera.Position);
+            _lightingShader.SetVector3("light.direction", _camera.Front);
+            _lightingShader.SetFloat("light.cutOff", MathF.Cos(MathHelper.DegreesToRadians(12.5f)));
+            _lightingShader.SetFloat("light.outerCutOff", MathF.Cos(MathHelper.DegreesToRadians(40.5f)));
+            _lightingShader.SetFloat("light.constant", 1.0f);
+            _lightingShader.SetFloat("light.linear", 0.09f);
+            _lightingShader.SetFloat("light.quadratic", 0.032f);
+            _lightingShader.SetVector3("light.ambient", new Vector3(1.2f));//0.2f
+            _lightingShader.SetVector3("light.diffuse", new Vector3(1.5f));//0.5f
+            _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -144,6 +188,8 @@ namespace Lab2Pyramid
 
             //if (_time > 60) coef = -1;
             //if (_time < -60) coef = 1;
+            _shader.Use();
+            DefineShader(_shader);
 
             if (!isDisassemble)
                 DisassemblePyramid();
@@ -384,83 +430,7 @@ namespace Lab2Pyramid
             }
             for (int i = 2; i <= NumberOfMoveObjects; i++)
                 DrawTorusInUp(i);
-        }
-        public void DisassemblePyramidEazyMode(int i)
-        {
-            var Object = _renderObjects[i];
-            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
-            var RotationMatrixX2 = Matrix4.CreateTranslation(0, (float)(_time / 4), 0);
-            var model = Matrix4.Identity;
-            switch (i)
-            {
-                case 0:
-                    Object.Bind();
-                    model *= RotationMatrixX1;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.Render();
-                    break;
-                case 1:
-                    Object.Bind();
-                    model *= RotationMatrixX1 * RotationMatrixX2;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.Render();
-                    break;
-                default:
-                    Object.Bind();
-                    model *= RotationMatrixX1 * RotationMatrixX2;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.RenderTorus();
-                    break;
-            }
-        }
-
-        public void AssemblePyramidEazyMode(int i)
-        {
-            var Object = _renderObjects[i];
-            var RotationMatrixX1 = Matrix4.CreateRotationX((float)MathHelper.DegreesToRadians(90));
-            var RotationMatrixX2 = Matrix4.CreateTranslation(0, -(float)(_time / 4), 0);
-            var model = Matrix4.Identity;
-            switch (i)
-            {
-                case 0:
-                    Object.Bind();
-                    model *= RotationMatrixX1;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.Render();
-                    break;
-                case 1:
-                    Object.Bind();
-                    model *= RotationMatrixX1 * RotationMatrixX2;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.Render();
-                    break;
-                default:
-                    Object.Bind();
-                    model *= RotationMatrixX1 * RotationMatrixX2;
-                    Object.ApplyTexture();
-                    _shader.SetMatrix4("model", model);
-                    _shader.SetMatrix4("view", _camera.GetViewMatrix());
-                    _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-                    Object.RenderTorus();
-                    break;
-            }
-        }
-
+        }       
         
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -477,7 +447,7 @@ namespace Lab2Pyramid
             {
                 Close();
             }
-
+            
             const float cameraSpeed = 3.5f;
             const float sensitivity = 0.2f;
 

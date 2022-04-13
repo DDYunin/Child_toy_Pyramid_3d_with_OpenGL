@@ -1,21 +1,21 @@
 #version 330 core
 struct Material {
-    sampler2D texture0;
-    sampler2D texture1;
+    sampler2D diffuse;
+    sampler2D specular;
     float     shininess;
 };
-
-//This light structure is pretty much the same as the one from the last few parts of the tutorials
+//The spotlight is a pointlight in essence, however we only want to show the light within a certain angle.
+//That angle is the cutoff, the outercutoff is used to make a more smooth border to the spotlight.
 struct Light {
-    vec3 position;
+    vec3  position;
+    vec3  direction;
+    float cutOff;
+    float outerCutOff;
 
     vec3 ambient;
-    vec3 texture0;
-    vec3 texture1;
+    vec3 diffuse;
+    vec3 specular;
 
-    //In the web version you can see why we need the constant the linear and the quadratic values.
-    //However to keep a brief explanation here, it is to make the light more dim the further you go away.
-    //These are constants defining the graph the intensity of the light follows.
     float constant;
     float linear;
     float quadratic;
@@ -33,32 +33,38 @@ in vec2 TexCoords;
 
 void main()
 {
-
     //ambient
-    vec3 ambient = light.ambient * vec3(texture(material.texture0, TexCoords));
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 
-    //texture0 
+    //diffuse 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 texture0 = light.texture0 * diff * vec3(texture(material.texture0, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
 
-    //texture1
+    //specular
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 texture1 = light.texture1 * spec * vec3(texture(material.texture1, TexCoords));
-    
-    //attenuation
-    //The attenuation is the term we use when talking about how dim the light gets over distance
-    float distance    = length(light.position - FragPos);
-    //This formula is the so called attenuation formula used to calculate the attenuation
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-    //To apply the attenuation simply multiply it into each of the elements
-    ambient  *= attenuation;
-    texture0  *= attenuation;
-    texture1 *= attenuation;
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
 
-    vec3 result = ambient + texture0 + texture1;
+    //attenuation
+    float distance    = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance +
+    light.quadratic * (distance * distance));
+
+    //spotlight intensity
+    //This is how we calculate the spotlight, for a more in depth explanation of how this works. Check out the web tutorials.
+    float theta     = dot(lightDir, normalize(-light.direction));
+    float epsilon   = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0); //The intensity, is the lights intensity on a given fragment,
+                                                                                //this is used to make the smooth border.    
+    //When applying the spotlight intensity we want to multiply it.
+    ambient  *= attenuation; //Remember the ambient is where the light dosen't hit, this means the spotlight shouldn't be applied
+    diffuse  *= attenuation * intensity;
+    specular *= attenuation * intensity;
+
+    vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);
+    
 }
