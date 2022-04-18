@@ -15,84 +15,82 @@ namespace LearnOpenTK
 
         private readonly Dictionary<string, int> _uniformLocations;
 
-        // This is how you create a simple shader.
-        // Shaders are written in GLSL, which is a language very similar to C in its semantics.
-        // The GLSL source is compiled *at runtime*, so it can optimize itself for the graphics card it's currently being used on.
-        // A commented example of GLSL can be found in shader.vert.
+        // Вот как вы создаете простой шейдер.
+        // Шейдеры написаны на GLSL, который по своей семантике очень похож на C.
+        // Исходный код GLSL компилируется * во время выполнения *, поэтому он может оптимизировать себя для видеокарты, на которой он в данный момент используется.
         public Shader(string vertPath, string fragPath)
         {
-            // There are several different types of shaders, but the only two you need for basic rendering are the vertex and fragment shaders.
-            // The vertex shader is responsible for moving around vertices, and uploading that data to the fragment shader.
-            //   The vertex shader won't be too important here, but they'll be more important later.
-            // The fragment shader is responsible for then converting the vertices to "fragments", which represent all the data OpenGL needs to draw a pixel.
-            //   The fragment shader is what we'll be using the most here.
+            // Существует несколько различных типов шейдеров, но единственные два, которые вам нужны для базового рендеринга, - это шейдеры вершин и фрагментов.
+            // Вершинный шейдер отвечает за перемещение по вершинам и загрузку этих данных в фрагментный шейдер.
+            // Вершинный шейдер здесь не будет слишком важен, но позже он станет более важным.
+            // Шейдер фрагментов отвечает за последующее преобразование вершин в "фрагменты", которые представляют все данные, необходимые OpenGL для рисования пикселя.
+            // Фрагментный шейдер - это то, что мы будем использовать здесь чаще всего.
 
-            // Load vertex shader and compile
+            // Загружаем шейдер вертексов и компилируем
             var shaderSource = File.ReadAllText(vertPath);
 
-            // GL.CreateShader will create an empty shader (obviously). The ShaderType enum denotes which type of shader will be created.
+            // GL.CreateShader создаст пустой шейдер (очевидно). Перечисление ShaderType указывает, какой тип шейдера будет создан.
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
 
-            // Now, bind the GLSL source code
+            // Теперь привяжите исходный код GLSL
             GL.ShaderSource(vertexShader, shaderSource);
 
-            // And then compile
+            // И компилим
             CompileShader(vertexShader);
 
-            // We do the same for the fragment shader.
+            // Делаем тоже самое для фрагментого шейдера
             shaderSource = File.ReadAllText(fragPath);
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, shaderSource);
             CompileShader(fragmentShader);
 
-            // These two shaders must then be merged into a shader program, which can then be used by OpenGL.
-            // To do this, create a program...
+            // Затем эти два шейдера должны быть объединены в шейдерную программу, которая затем может быть использована OpenGL.
+            // Для этого создайте программу...
             Handle = GL.CreateProgram();
 
-            // Attach both shaders...
+            // Прикрепите оба шейдера...
             GL.AttachShader(Handle, vertexShader);
             GL.AttachShader(Handle, fragmentShader);
 
-            // And then link them together.
+            // А затем свяжите их вместе.
             LinkProgram(Handle);
 
-            // When the shader program is linked, it no longer needs the individual shaders attached to it; the compiled code is copied into the shader program.
-            // Detach them, and then delete them.
+            // Когда шейдерная программа связана, ей больше не нужны отдельные шейдеры, прикрепленные к ней; скомпилированный код копируется в шейдерную программу.
+            // Отсоедините их, а затем удалите.
             GL.DetachShader(Handle, vertexShader);
             GL.DetachShader(Handle, fragmentShader);
             GL.DeleteShader(fragmentShader);
             GL.DeleteShader(vertexShader);
 
-            // The shader is now ready to go, but first, we're going to cache all the shader uniform locations.
-            // Querying this from the shader is very slow, so we do it once on initialization and reuse those values
-            // later.
+            // Теперь шейдер готов к работе, но сначала мы собираемся кэшировать все однородные местоположения шейдера.
+            // Запрос этого из шейдера выполняется очень медленно, поэтому мы делаем это один раз при инициализации и повторно используем эти значения позже.
 
-            // First, we have to get the number of active uniforms in the shader.
+            // Во-первых, мы должны получить количество активных униформ в шейдере.
             GL.GetProgram(Handle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
 
-            // Next, allocate the dictionary to hold the locations.
+            // Далее выделите словарь для хранения местоположений.
             _uniformLocations = new Dictionary<string, int>();
 
-            // Loop over all the uniforms,
+            // Цикл по всей униформе,
             for (var i = 0; i < numberOfUniforms; i++)
             {
-                // get the name of this uniform,
+                // получить название этой униформы,
                 var key = GL.GetActiveUniform(Handle, i, out _, out _);
 
                 // get the location,
                 var location = GL.GetUniformLocation(Handle, key);
 
-                // and then add it to the dictionary.
+                // а затем добавьте его в словарь.
                 _uniformLocations.Add(key, location);
             }
         }
 
         private static void CompileShader(int shader)
         {
-            // Try to compile the shader
+            // Пробуем скомпилить шейдер
             GL.CompileShader(shader);
 
-            // Check for compilation errors
+            // ПРоверяем на ошибки компилирования
             GL.GetShader(shader, ShaderParameter.CompileStatus, out var code);
             if (code != (int)All.True)
             {
@@ -104,10 +102,10 @@ namespace LearnOpenTK
 
         private static void LinkProgram(int program)
         {
-            // We link the program
+            // Соединяем с программой
             GL.LinkProgram(program);
 
-            // Check for linking errors
+            // Проверка на ошибки с линквокй
             GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
             if (code != (int)All.True)
             {
@@ -116,27 +114,27 @@ namespace LearnOpenTK
             }
         }
 
-        // A wrapper function that enables the shader program.
+        // Функция-оболочка, которая включает программу шейдеров.
         public void Use()
         {
             GL.UseProgram(Handle);
         }
 
-        // The shader sources provided with this project use hardcoded layout(location)-s. If you want to do it dynamically,
-        // you can omit the layout(location=X) lines in the vertex shader, and use this in VertexAttribPointer instead of the hardcoded values.
+        // Источники шейдеров, поставляемые с этим проектом, используют жестко закодированные layout(location)-ы. Если вы хотите сделать это динамически,
+        // вы можете опустить строки layout(location=X) в вершинном шейдере и использовать это в vertexAttribPointer вместо жестко закодированных значений.
         public int GetAttribLocation(string attribName)
         {
             return GL.GetAttribLocation(Handle, attribName);
         }
 
-        // Uniform setters
-        // Uniforms are variables that can be set by user code, instead of reading them from the VBO.
-        // You use VBOs for vertex-related data, and uniforms for almost everything else.
+        // // Единые пояснения
+        // // Униформа - это переменные, которые могут быть заданы пользовательским кодом, вместо того, чтобы считывать их из VBA.
+        // // Вы используете Vbo для данных, связанных с вершинами, и uniforms почти для всего остального.
 
-        // Setting a uniform is almost always the exact same, so I'll explain it here once, instead of in every method:
-        //     1. Bind the program you want to set the uniform on
-        //     2. Get a handle to the location of the uniform with GL.GetUniformLocation.
-        //     3. Use the appropriate GL.Uniform* function to set the uniform.
+        // Настройка униформы почти всегда одинакова, поэтому я объясню это здесь один раз, а не в каждом методе:
+        // 1. Привяжите программу, на которую вы хотите установить униформу
+        // 2. Получите справку о местонахождении униформы с помощью GL.GetUniformLocation.
+        // 3. Используйте соответствующую функцию GL.Uniform* для установки униформы.
 
         /// <summary>
         /// Set a uniform int on this shader.

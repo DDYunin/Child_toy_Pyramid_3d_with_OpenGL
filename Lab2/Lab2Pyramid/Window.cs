@@ -14,9 +14,6 @@ namespace Lab2Pyramid
 {
     public class Window : GameWindow
     {
-        //float[] _vertices, _vertices1;
-        //int[] _indices, _indices1;
-
         private Shader _shader;
 
         private Texture _texture_tree;
@@ -44,61 +41,37 @@ namespace Lab2Pyramid
 
         private double _timeLimit = 100;
         private double _time = 0;
-        private int coef = 1;
-        bool isDisassemble = false;
+        bool isDisassemble = false; //Разобрана ли пирамидка
 
-        int NumberMoveObject = 1;// от 1 до 8
-        const int NumberOfFigure = 9;
-        int NumberOfMoveObjects = 1;
+        int NumberMoveObject = 1;// от 1 до 8 //номер двигаемой фигуры
+        const int NumberOfFigure = 9; //количество фигур
+        int NumberOfMoveObjects = 1; //число подвинутых фигур
         
         // update with lighting
-        private readonly Vector3 _lightPos = new Vector3(0.0f, 0.0f, 0.0f);
+        private readonly Vector3 _lightPos = new Vector3(0.0f, 3.0f, 0.0f); //точка освещения
         // update with lighting
-
-        Sphere Butt;
-        Cylinder Cyl;
-        Cylinder Cyl1;
-        Torus t1;
-        Torus t2;
-        Torus t3;
-        Torus t4;
-        Torus t5;
-        Torus t6;
-        Torus t7;
 
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
             : base(gameWindowSettings, nativeWindowSettings)
         {
         }
 
+        //Подгрузить и настроить первоначальные данные
         protected override void OnLoad()
         {
             base.OnLoad();
             _camera = new Camera(Vector3.UnitZ * 1, Size.X / (float)Size.Y);
 
-            Cyl1 = new Cylinder(0f, -19.0f, 7.3f, 6f, 1f);//0, -19, 7.3
-            Butt = new Sphere(1.3f, 0.0f, -19.0f, -6.5f);
-            Cyl = new Cylinder(0f, -19.0f, 0f, 0.45f, 13.8f);
-            t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, -19.0f, 5.5f);
-            t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, -19.0f, 3.3f);
-            t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, -19.0f, 1.3f);
-            t4 = new Torus(75, 75, 2.2f, 0.85f, 0.0f, -19.0f, -0.5f);
-            t5 = new Torus(75, 75, 1.8f, 0.75f, 0.0f, -19.0f, -2.1f);
-            t6 = new Torus(75, 75, 1.4f, 0.65f, 0.0f, -19.0f, -3.5f);
-            t7 = new Torus(75, 75, 1.0f, 0.55f, 0.0f, -19.0f, -4.75f);
-            //Cyl.buildVerticesSmooth(); //  запихнуть эту функций куд-нибдуь внутрь класса
-
-
-            //t.GetVertices();
-            //t.GetNormals();
-            //t.GetTexCoords();
-
-
-            //_vertices = Head.GetVertecies();
-            //_indices = Head.GetIndices();
-
-            //_vertices1 = Butt.GetVertecies();
-            //_indices1 = Butt.GetIndices();
+            Cylinder Cyl1 = new Cylinder(0f, -10.0f, 7.3f, 6f, 1f);//0, -19, 7.3 //0, -10, 7.3
+            Sphere Butt = new Sphere(1.3f, 0.0f, -10.0f, -6.5f);
+            Cylinder Cyl = new Cylinder(0f, -10.0f, 0f, 0.45f, 13.8f);
+            Torus t1 = new Torus(75, 75, 3.5f, 1.15f, 0.0f, -10.0f, 5.5f);
+            Torus t2 = new Torus(75, 75, 3.0f, 1.05f, 0.0f, -10.0f, 3.3f);
+            Torus t3 = new Torus(75, 75, 2.6f, 0.95f, 0.0f, -10.0f, 1.3f);
+            Torus t4 = new Torus(75, 75, 2.2f, 0.85f, 0.0f, -10.0f, -0.5f);
+            Torus t5 = new Torus(75, 75, 1.8f, 0.75f, 0.0f, -10.0f, -2.1f);
+            Torus t6 = new Torus(75, 75, 1.4f, 0.65f, 0.0f, -10.0f, -3.5f);
+            Torus t7 = new Torus(75, 75, 1.0f, 0.55f, 0.0f, -10.0f, -4.75f);
 
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
@@ -115,7 +88,7 @@ namespace Lab2Pyramid
             _texture_specular_blue = Texture.LoadFromFile("../../../Resources/blue_specular.jpg");
             _texture_specular_green = Texture.LoadFromFile("../../../Resources/new_green_specular.jpg");
             _texture_specular_yellow = Texture.LoadFromFile("../../../Resources/new_yellow_specular.jpg");
-            //_shader = new Shader("../../../Shaders/shader.vert", "../../../Shaders/shader.frag");
+
             _shader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
             DefineShader(_shader);
 
@@ -131,99 +104,54 @@ namespace Lab2Pyramid
             _renderObjects.Add(new RenderObjects(t1.GetAllTogether(), t1.GetIndices(), _texture_yellow, _texture_specular_yellow, _shader, 8));
             _renderObjects.Add(new RenderObjects(Cyl1.GetAllTogether(), Cyl1.GetIndices(), _texture_tree, _texture_specular_tree, _shader, 8));
 
-
-
-
-
             _shader.Use();
-
-
-
-           // _texture_tree.Use(TextureUnit.Texture0); - без понятия для чего это
-
-            //_texture_yellow.Use(TextureUnit.Texture1); - без понятия для чего это
-
-
-
-
-            // We initialize the camera so that it is 3 units back from where the rectangle is.
-            // We also give it the proper aspect ratio.
-
-            // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
-            //CursorGrabbed = true; -раскомменть
         }
 
+        //настраиваем шейдер
         private void DefineShader(Shader _lightingShader)
         {
             _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
             _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
 
-            _lightingShader.SetVector3("viewPos", _lightPos);//_camera.Position
+            _lightingShader.SetVector3("viewPos", _lightPos);
 
-            _lightingShader.SetInt("material.diffuse", 0);
-            _lightingShader.SetInt("material.specular", 1);
+            _lightingShader.SetInt("material.diffuse", 0);//диффузное изображение
+            _lightingShader.SetInt("material.specular", 1);//отражённое изображение
             _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
             _lightingShader.SetFloat("material.shininess", 1000.0f);
 
-            _lightingShader.SetVector3("light.position", _camera.Position);
-            _lightingShader.SetVector3("light.direction", _camera.Front);
+            _lightingShader.SetVector3("light.position", _lightPos);
+            _lightingShader.SetVector3("light.direction", _lightPos);
             _lightingShader.SetFloat("light.cutOff", MathF.Cos(MathHelper.DegreesToRadians(12.5f)));
             _lightingShader.SetFloat("light.outerCutOff", MathF.Cos(MathHelper.DegreesToRadians(40.5f)));
             _lightingShader.SetFloat("light.constant", 1.0f);
             _lightingShader.SetFloat("light.linear", 0.09f);
             _lightingShader.SetFloat("light.quadratic", 0.032f);
-            _lightingShader.SetVector3("light.ambient", new Vector3(1.2f));//0.2f
+            _lightingShader.SetVector3("light.ambient", new Vector3(2.2f));//0.2f
             _lightingShader.SetVector3("light.diffuse", new Vector3(1.5f));//0.5f
             _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
         }
 
+        //Логика отрисовки (тоесть сама отрисовка)
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-
-            
-            
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            //if (_time > 60) coef = -1;
-            //if (_time < -60) coef = 1;
             _shader.Use();
             DefineShader(_shader);
 
             if (!isDisassemble)
                 DisassemblePyramid();
             else
-            {
-                DrawCylinder1();
-                DrawCylinder();
-                for (int i = NumberOfMoveObjects; i >= 2; i--)
-                {
-                    if (i == NumberMoveObject)
-                    {
-                        MotionTorusDown(i);
-                        continue;
-                    }
-                    DrawTorusInUp(i);
-                }
-               for (int i = NumberOfFigure - 1; i > NumberOfMoveObjects; i--)
-                    DrawTorus(i);
-                if (NumberMoveObject == 1)
-                    MotionSphereDown();
-                else if (NumberMoveObject == 0)
-                    DrawSphereInStartPosition();
-                else
-                    DrawSphere();
-            }
+                AssemblePyramid();
 
-            //Должно подниматься по одной фигуре
-            //Thread.Sleep();
-            
-            //Какой-то косяк с индексами, выяснить какой
             SwapBuffers();
-            _time += 100.0 * e.Time * coef;// * Math.Cos(_time / 40);
+            _time += 100.0 * e.Time;
         }
 
+        //Функция движения сферы
         public void MotionSphere()
         {
             var Object = _renderObjects[1];
@@ -244,6 +172,7 @@ namespace Lab2Pyramid
             }
         }
 
+        //Функция движения тора
         public void MotionTorus(int i)
         {
             var Object = _renderObjects[i];
@@ -272,6 +201,7 @@ namespace Lab2Pyramid
 
         }
 
+        //Функция движения сферы вниз
         public void MotionSphereDown()
         {
             var Object = _renderObjects[1];
@@ -292,6 +222,7 @@ namespace Lab2Pyramid
             }
         }
 
+        //Функция движения тора вниз
         public void MotionTorusDown(int i)
         {
             var Object = _renderObjects[i];
@@ -313,6 +244,7 @@ namespace Lab2Pyramid
             }
         }
 
+        //Функция отрисовки цилиндра (палки)
         public void DrawCylinder()
         {
             var Object = _renderObjects[0];
@@ -327,6 +259,7 @@ namespace Lab2Pyramid
             Object.Render();
         }
 
+        //Функция отрисовки цилиндра (площадки)
         public void DrawCylinder1()
         {
             var Object = _renderObjects[9];
@@ -341,6 +274,7 @@ namespace Lab2Pyramid
             Object.Render();
         }
 
+        //Функция отрисовки сферы в начальной позиции
         public void DrawSphereInStartPosition()
         {
             var Object = _renderObjects[1];
@@ -362,6 +296,7 @@ namespace Lab2Pyramid
             }
         }
 
+        //Функция отрисовки сферы в верхней позиции
         public void DrawSphere()
         {
             var Object = _renderObjects[1];
@@ -377,6 +312,7 @@ namespace Lab2Pyramid
             Object.Render();
         }
 
+        //Функция отрисовки тора в начальной позиции
         public void DrawTorus(int i)
         {
             var Object = _renderObjects[i];
@@ -391,6 +327,7 @@ namespace Lab2Pyramid
             Object.RenderTorus();
         }
 
+        //Функция отрисвоки тора в верхней похиции
         public void DrawTorusInUp(int i)
         {
             var Object = _renderObjects[i];
@@ -411,6 +348,7 @@ namespace Lab2Pyramid
             }
         }
 
+        //Разобрать пирамидку
         public void DisassemblePyramid()
         {
             DrawCylinder1();
@@ -432,6 +370,31 @@ namespace Lab2Pyramid
                 DrawTorusInUp(i);
         }       
         
+        //Собрать пирамидку
+        public void AssemblePyramid()
+        {
+                DrawCylinder1();
+                DrawCylinder();
+                for (int i = NumberOfMoveObjects; i >= 2; i--)
+                {
+                    if (i == NumberMoveObject)
+                    {
+                        MotionTorusDown(i);
+                        continue;
+                    }
+                    DrawTorusInUp(i);
+                }
+                for (int i = NumberOfFigure - 1; i > NumberOfMoveObjects; i--)
+                    DrawTorus(i);
+                if (NumberMoveObject == 1)
+                    MotionSphereDown();
+                else if (NumberMoveObject == 0)
+                    DrawSphereInStartPosition();
+                else
+                    DrawSphere();
+        }
+
+        //Логика работы приложение (обработка нажатий)
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
@@ -447,10 +410,10 @@ namespace Lab2Pyramid
             {
                 Close();
             }
-            
-            const float cameraSpeed = 3.5f;
-            const float sensitivity = 0.2f;
 
+                //Если раскомментить этот фрагмент кода, то мы сможем перемещать нашу камеру в пространстве, путём изменения её позиции.
+            /*const float cameraSpeed = 3.5f;
+           
             if (input.IsKeyDown(Keys.W))
             {
                 _camera.Position += _camera.Front * cameraSpeed * (float)e.Time; // Forward
@@ -476,30 +439,34 @@ namespace Lab2Pyramid
             {
                 _camera.Position -= _camera.Up * cameraSpeed * (float)e.Time; // Down
             }
+            */
 
+            
+            const float sensitivity = 0.2f;
             // Get the mouse state
             var mouse = MouseState;
 
-            if (_firstMove) // This bool variable is initially set to true.
+            if (_firstMove) // Изначально попадаем сюда, чтобы записать данные и дальше их использовать
             {
                 _lastPos = new Vector2(mouse.X, mouse.Y);
                 _firstMove = false;
             }
             else
             {
-                // Calculate the offset of the mouse position
+                // Вычислить смещение положения мыши
                 var deltaX = mouse.X - _lastPos.X;
                 var deltaY = mouse.Y - _lastPos.Y;
                 _lastPos = new Vector2(mouse.X, mouse.Y);
 
-                // Apply the camera pitch and yaw (we clamp the pitch in the camera class)
+                // Применяем тангаж камеры и рыскание (мы фиксируем тангаж в классе камеры)
                 _camera.Yaw += deltaX * sensitivity;
                 _camera.Pitch -= deltaY * sensitivity; // Reversed since y-coordinates range from bottom to top
             }
+            
         }
 
-        // In the mouse wheel function, we manage all the zooming of the camera.
-        // This is simply done by changing the FOV of the camera.
+        // В функции колеса мыши мы управляем всем масштабированием камеры.
+        // Это просто делается путем изменения угла обзора камеры.
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
@@ -512,7 +479,7 @@ namespace Lab2Pyramid
             base.OnResize(e);
 
             GL.Viewport(0, 0, Size.X, Size.Y);
-            // We need to update the aspect ratio once the window has been resized.
+            // Нам нужно обновить соотношение сторон после изменения размера окна.
             _camera.AspectRatio = Size.X / (float)Size.Y;
         }
     }

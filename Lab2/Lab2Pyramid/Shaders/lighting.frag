@@ -1,11 +1,14 @@
 #version 330 core
 struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    float     shininess;
+    sampler2D diffuse; //Диффузная часть модели фонга. // Это та часть света, которая дает больше всего, это цвет объекта, на который попадает свет.
+    sampler2D specular; // Зеркальный свет - это свет, исходящий от объекта, подобно свету, падающему на металл.
+    float     shininess; //Блеск - это сила, до которой доводится зеркальный свет
 };
-//The spotlight is a pointlight in essence, however we only want to show the light within a certain angle.
-//That angle is the cutoff, the outercutoff is used to make a more smooth border to the spotlight.
+
+//// Прожектор по сути является точечным источником света, однако мы хотим показывать свет только под определенным углом.
+////Этот угол является cutoff, the outercutoff используется для создания более плавной границы для прожектора.
+//Источник света содержит все значения от источника света, как рассеянные, так и зеркальные значения от источника света.
+
 struct Light {
     vec3  position;
     vec3  direction;
@@ -33,34 +36,33 @@ in vec2 TexCoords;
 
 void main()
 {
-    //ambient
+    //окружающая среда
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 
-    //diffuse 
+    //рассеянный
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
 
-    //specular
+    //зеркальный
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
 
-    //attenuation
+    //затухание
     float distance    = length(light.position - FragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance +
     light.quadratic * (distance * distance));
 
-    //spotlight intensity
-    //This is how we calculate the spotlight, for a more in depth explanation of how this works. Check out the web tutorials.
+    //интенсивность прожектора
     float theta     = dot(lightDir, normalize(-light.direction));
     float epsilon   = light.cutOff - light.outerCutOff;
-    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0); //The intensity, is the lights intensity on a given fragment,
-                                                                                //this is used to make the smooth border.    
-    //When applying the spotlight intensity we want to multiply it.
-    ambient  *= attenuation; //Remember the ambient is where the light dosen't hit, this means the spotlight shouldn't be applied
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0); //Интенсивность - это интенсивность света на данном фрагменте,
+                                                                              // используется для создания плавной границы.  
+    //При применении интенсивности прожектора мы хотим ее умножить.
+    ambient  *= attenuation; //// Помните, что окружающая среда - это то место, куда не попадает свет, это означает, что прожектор не должен быть применен
     diffuse  *= attenuation * intensity;
     specular *= attenuation * intensity;
 

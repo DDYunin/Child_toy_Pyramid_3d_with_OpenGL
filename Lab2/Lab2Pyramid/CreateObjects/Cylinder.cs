@@ -16,14 +16,15 @@ namespace Lab2Pyramid
         public List<int> Indices = new List<int>();
         public List<int> lineIndices = new List<int>();
 
-        public float baseRadius, height;
-        public int sectorCount, stackCount;
+        public float baseRadius, height; //радиус цилиндра и его высота
+        public int sectorCount, stackCount; //количество секторов и стаков для отрисовки фигуры
 
         private int baseCenterIndex;
         private int topCenterIndex;
 
-        float x, y, z;
+        float x, y, z; //координаты положения фигуры
 
+        //конструктор класса
         public Cylinder(float x, float y, float z, float baseRadius, float height, int sectorCount = 18, int stackCount = 36)
         {
             this.baseRadius = baseRadius;
@@ -36,6 +37,7 @@ namespace Lab2Pyramid
             this.buildVerticesSmooth();
         }
 
+        //Создаются вертексы (точки) для окружностей цилиндра
         public List<float> getUnitCircleVertices()
         {
             const float PI = 3.1415926f;
@@ -53,6 +55,7 @@ namespace Lab2Pyramid
             return unitCircleVertices;
         }
 
+       //Создаются все вертексы для фигуры (а так ж нормали и текстурные координаты для них)
         public void buildVerticesSmooth()
         {
             List<float> unitVertices = getUnitCircleVertices();
@@ -122,6 +125,7 @@ namespace Lab2Pyramid
             return Vertecies.ToArray();
         }
 
+        //Создаются и возвращаются индексы
         public int[] GetIndices()
         {
             int k1 = 0;
