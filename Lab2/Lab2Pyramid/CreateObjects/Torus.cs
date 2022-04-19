@@ -16,18 +16,14 @@ namespace Lab2Pyramid
 		public List<int> lineIndices = new List<int>();
 
 		int mainSegments; int tubeSegments; float mainRadius; float tubeRadius;
-		bool withPositions = true; bool withTextureCoordinates = true; bool withNormals = true;
+		
 		float coord_X, coord_Y, coord_Z;
-		public Torus(int mainSegments, int tubeSegments, float mainRadius, float tubeRadius, float coord_X = 0.0f, float coord_Y = 0.0f, float coord_Z = 0.0f,
-		bool withPositions = true, bool withTextureCoordinates = true, bool withNormals = true)
+		public Torus(int mainSegments, int tubeSegments, float mainRadius, float tubeRadius, float coord_X = 0.0f, float coord_Y = 0.0f, float coord_Z = 0.0f)
 		{
 			this.mainSegments = mainSegments;
 			this.tubeRadius = tubeRadius;
 			this.tubeSegments = tubeSegments;
 			this.mainRadius = mainRadius;
-			this.withPositions = withPositions;
-			this.withTextureCoordinates = withTextureCoordinates;
-			this.withNormals = withNormals;
 			this.coord_X = coord_X;
 			this.coord_Y = coord_Y;
 			this.coord_Z = coord_Z;
@@ -42,8 +38,6 @@ namespace Lab2Pyramid
 			float mainSegmentAngleStep = (float)MathHelper.DegreesToRadians(360.0f / (float)(mainSegments));
 			float tubeSegmentAngleStep = (float)MathHelper.DegreesToRadians(360.0f / (float)(tubeSegments));
 
-			//if (hasPositions())
-			//{
 			float currentMainSegmentAngle = 0.0f;
 			for (int i = 0; i <= mainSegments; i++)
 			{
@@ -61,12 +55,6 @@ namespace Lab2Pyramid
 					Vertecies.Add(coord_X + (mainRadius + tubeRadius * cosTubeSegment) * cosMainSegment); // x //coord_x + лишнее
 					Vertecies.Add(coord_Y + (mainRadius + tubeRadius * cosTubeSegment) * sinMainSegment); // y
 					Vertecies.Add(coord_Z + tubeRadius * sinTubeSegment);//z
-															   //auto surfacePosition = glm::vec3(
-															   //	(_mainRadius + _tubeRadius * cosTubeSegment) * cosMainSegment,
-															   //	(_mainRadius + _tubeRadius * cosTubeSegment) * sinMainSegment,
-															   //	_tubeRadius * sinTubeSegment);
-
-					//_vbo.addData(&surfacePosition, sizeof(glm::vec3));
 
 					// Update current tube angle
 					currentTubeSegmentAngle += tubeSegmentAngleStep;

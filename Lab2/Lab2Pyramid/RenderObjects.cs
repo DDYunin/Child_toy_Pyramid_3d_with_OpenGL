@@ -17,120 +17,84 @@ namespace Lab2Pyramid
 
         public readonly int indicesLenght;
 
-        Texture texture;
+        Texture Diffuse, Specular; //диффузная, спекулярная
         Shader shader;
 
 
-        public RenderObjects(float[] _vertices, int[] _indices, Texture texture, Shader shader, int stride)
+        public RenderObjects(float[] _vertices, int[] _indices, Texture diffuse, Texture specular, Shader shader, int stride)
         {
-            this.texture = texture;
+            this.Diffuse = diffuse;
             this.shader = shader;
+            this.Specular = specular;
             indicesLenght = _indices.Length;
 
-            shader.SetInt("texture0", 0);
+            //Создаётся связь массива вертексов и переменной присваивается дискриптор
             GL.BindVertexArray(_vertexArrayObject);
 
+            //Создаётся связь с буффером
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
 
-            GL.NamedBufferStorage(
-               _vertexBufferObject,
-               _vertices.Length * sizeof(float),        // the size needed by this buffer
-               _vertices,                           // data to initialize with
-               BufferStorageFlags.MapWriteBit);    // at this point we will only write to the buffer
+            //инициализируем буфферное 
+            GL.NamedBufferStorage( _vertexBufferObject,
+               _vertices.Length * sizeof(float),        // размер, необходимый для этого буффера
+               _vertices,                           // данные, которые нужно положить в буферр
+               BufferStorageFlags.MapWriteBit);    // на этом этапе мы будем записывать только в буфер
 
+            //настройки vao
             GL.VertexArrayAttribBinding(_vertexArrayObject, 0, 0);
             GL.EnableVertexArrayAttrib(_vertexArrayObject, 0);
 
+            //собираем координты, посылаем туда, задаём инструкции как их читать
             var positionLocation = shader.GetAttribLocation("aPosition");
             GL.EnableVertexAttribArray(positionLocation);
             GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
 
-            var normalLocation = shader.GetAttribLocation("aTexCoord");
+            //собираем координты, посылаем туда, задаём инструкции как их читать
+            var normalLocation = shader.GetAttribLocation("aNormal");
             GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
+            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 3 * sizeof(float));
 
-            // link the vertex array and buffer and provide the stride as size of Vertex
+            //собираем координты, посылаем туда, задаём инструкции как их читать
+            var texCoordLocation = shader.GetAttribLocation("aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
+
+            // свяжите массив вершин и буфер и укажите шаг в качестве размера вершины
             GL.VertexArrayVertexBuffer(_vertexArrayObject, 0, _vertexBufferObject, IntPtr.Zero, stride * sizeof(float));
 
 
-
+            //Связываем буфер, и посылаем туда данные индексов (для дальнейшего их использования, чтобы соединять точки)
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.DynamicDraw);//staticDraw
 
 
         }
 
-        //public RenderSphere(float[] vertex,  Texture texture, Shader shader)
-        //{
-        //    this.texture = texture;
-        //    this.shader = shader;
-        //    indicesLenght = vertex.Length;
-        //    _vertexBufferObject = GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-
-        //    GL.BufferData(BufferTarget.ArrayBuffer, vertex.Length * sizeof(float), vertex,  BufferUsageHint.StaticDraw);
-        //    _vertexArrayObject = GL.GenVertexArray();
-        //    GL.BindVertexArray(_vertexArrayObject);
-
-        //    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        //    GL.EnableVertexAttribArray(0);
-        //}
-        //public void RenderWithoutIndices()
-        //{
-        //    GL.DrawArrays(PrimitiveType.Triangles, 0, indicesLenght);
-        //}
+        //отрисовываем объект Тор
         public void RenderTorus()
         {
-            GL.DrawElements(PrimitiveType.TriangleStrip, indicesLenght, DrawElementsType.UnsignedInt, 0);//PrimitiveType.Triangles
+            GL.DrawElements(PrimitiveType.TriangleStrip, indicesLenght, DrawElementsType.UnsignedInt, 0);
         }
 
+        //отрисовываем объект ЦИлиндер или сферу
         public void Render()
         {
-            GL.DrawElements(PrimitiveType.Triangles, indicesLenght, DrawElementsType.UnsignedInt, 0);//PrimitiveType.Triangles
+            GL.DrawElements(PrimitiveType.Triangles, indicesLenght, DrawElementsType.UnsignedInt, 0);
         }
+        
+        //Делаем текстуры
         public void ApplyTexture()
         {
-            texture.Use(TextureUnit.Texture0);
+            Diffuse.Use(TextureUnit.Texture0);
+            Specular.Use(TextureUnit.Texture1);
             shader.Use();
         }
+
+        //СОздаём связь с VAO
         public void Bind()
         {
             GL.BindVertexArray(_vertexArrayObject);
         }
         
-        public void Motion(float[] _vertices, int[] _indices, int stride)
-        {
-
-
-            shader.SetInt("texture0", 0);
-            GL.BindVertexArray(_vertexArrayObject);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-
-            GL.NamedBufferStorage(
-               _vertexBufferObject,
-               _vertices.Length * sizeof(float),        // the size needed by this buffer
-               _vertices,                           // data to initialize with
-               BufferStorageFlags.MapWriteBit);    // at this point we will only write to the buffer
-
-            GL.VertexArrayAttribBinding(_vertexArrayObject, 0, 0);
-            GL.EnableVertexArrayAttrib(_vertexArrayObject, 0);
-
-            var positionLocation = shader.GetAttribLocation("aPosition");
-            GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
-
-            var normalLocation = shader.GetAttribLocation("aTexCoord");
-            GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
-
-            // link the vertex array and buffer and provide the stride as size of Vertex
-            GL.VertexArrayVertexBuffer(_vertexArrayObject, 0, _vertexBufferObject, IntPtr.Zero, stride * sizeof(float));
-
-
-
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
-        }
     }
 }
